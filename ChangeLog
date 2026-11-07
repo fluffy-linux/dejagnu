@@ -1,3 +1,9 @@
+2026-11-06  Jacob Bachmeyer  <jcb@gnu.org>
+
+	* testsuite/lib/bohman_ssd.exp
+	(::math_utils::Bohman_SSD::{d,dp,check,summands}): Replace uses of
+	floating-point pow() for powers of 2 with integer bit shifts.
+
 2026-10-17  Jacob Bachmeyer  <jcb@gnu.org>
 
 	* doc/dejagnu.texi (remote_load procedure): Document.

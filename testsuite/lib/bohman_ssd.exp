@@ -1,4 +1,4 @@
-# Copyright (C) 2018 Free Software Foundation, Inc.
+# Copyright (C) 2018, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -55,10 +55,10 @@ namespace eval ::math_utils::Bohman_SSD {
 	    return 1
 	} elseif { $i < $n } {
 	    set j [expr { $n - $i }]
-	    return [expr { 2 * round(pow(4,($j - 1))) }]
+	    return [expr { 2 * 1<<(2*(($j - 1))) }]
 	} elseif { $i <= 2*$n } {
 	    set j [expr { $i - $n }]
-	    return [expr { round(pow(4,($j - 1))) }]
+	    return [expr { 1<<(2*(($j - 1))) }]
 	} else { # $i > 2*$n
 	    set sum 0
 	    for { set j [expr { $i - [b $n $i] }] } { $j < $i } { incr j } {
@@ -116,10 +116,10 @@ namespace eval ::math_utils::Bohman_SSD {
 	    return 1
 	} elseif { $i < $n + 1 } {
 	    set j [expr { $n + 1 - $i }]
-	    return [expr { round(pow(4,($j - 1))) }]
+	    return [expr { 1<<(2*(($j - 1))) }]
 	} elseif { $i <= 2*$n + 1 } {
 	    set j [expr { $i - $n - 1 }]
-	    return [expr { 2 * round(pow(4,($j - 1))) }]
+	    return [expr { 2 * 1<<(2*(($j - 1))) }]
 	} else { # $i > 2*$n + 1
 	    set sum 0
 	    for { set j [expr { $i - [bp $n $i] }] } { $j < $i } { incr j } {
@@ -156,7 +156,7 @@ namespace eval ::math_utils::Bohman_SSD {
     # quickly becomes impractical for large lists, requiring inordinate
     # amounts of both time and space.
     proc check { base } {
-	set bound [expr { int(pow(2,[llength $base])) }]
+	set bound [expr { 1<<([llength $base]) }]
 	for { set i 0 } { $i < $bound } { incr i } {
 	    set R $i
 	    set sum 0
@@ -198,7 +198,7 @@ namespace eval ::math_utils::Bohman_SSD {
     # requires constant space, but quickly becomes impractical for large
     # lists, requiring inordinate time to complete.
     proc summands { base goal } {
-	set bound [expr { int(pow(2,[llength $base])) }]
+	set bound [expr { 1<<([llength $base]) }]
 	for { set i 0 } { $i < $bound } { incr i } {
 	    set R $i
 	    set sum 0
