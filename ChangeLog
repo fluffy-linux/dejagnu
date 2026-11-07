@@ -77,6 +77,28 @@
 
 	* baseboards/qemu.exp: Convert obsolete Tcl case(n) to switch(n).
 
+2026-03-25  Jacob Bachmeyer  <jcb@gnu.org>
+
+	* baseboards/bpf-vmtest.exp: Allow user to override search for
+	Python 3 interpreter.
+	(find_python3, bpf-vmtest_compile, bpf-vmtest_load): Use Tcl line
+	continuation to wrap long lines.
+	(find_python3): Revise messages and change test for failure of
+	"which" to string comparison.
+
+2026-03-24  Jacob Bachmeyer  <jcb@gnu.org>
+
+	* ChangeLog, baseboards/bpf-vmtest.exp: Tidy whitespace.
+
+2026-02-24  Piyush Raj <piyushraj92739@gmail.com>
+
+	* baseboards/bpf-vmtest.exp: Add a new baseboard for runtime testing
+	of bpf programs in GCC testsuite.
+
+	* Makefile.am (baseboard_DATA): Add bpf-vmtest.exp.
+
+	* Makefile.in (baseboard_DATA): Likewise.
+
 2025-12-02  Jacob Bachmeyer  <jcb@gnu.org>
 
 	* baseboards/h8300.exp: Restore from Git history per a request

@@ -469,6 +469,7 @@ baseboard_DATA = \
 	baseboards/arm-sim.exp \
 	baseboards/basic-sid.exp \
 	baseboards/basic-sim.exp \
+	baseboards/bpf-vmtest.exp \
 	baseboards/cris-sim.exp \
 	baseboards/d30v-sim.exp \
 	baseboards/fr30-sim.exp \
