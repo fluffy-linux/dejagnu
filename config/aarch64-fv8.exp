@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Free Software Foundation, Inc.
+# Copyright (C) 2016, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -29,7 +29,7 @@ proc ${board}_download { dest file args } {
     global model timeout
 
     # Extract the endianess of the executable
-    set status [catch "exec od -An -v -j5 -N1 -t x1 $file" bigendian]
+    set status [catch {exec od -An -v -j5 -N1 -t x1 $file} bigendian]
     set args "--quiet"
     if { $bigendian eq "02"} {
 	set args "$args --bigendian"

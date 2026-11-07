@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2019, 2020, 2025 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019, 2020, 2025, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -35,7 +35,7 @@ proc exe_size {object} {
     } else {
 	verbose "Using $SIZE for \"size\" program." 2
     }
-    set status [catch "exec $SIZE -V" output]
+    set status [catch {exec $SIZE -V} output]
     if {[regexp "GNU size" $output] == 0} {
 	perror "Need GNU size from the binutils" 0
 	return [list "-1" "Need GNU size."]
@@ -43,7 +43,7 @@ proc exe_size {object} {
 
     # Get the object size. We pass -x, to force hex output
     verbose "Getting the object file size for $object" 2
-    set status [catch "exec $SIZE -x $object" output]
+    set status [catch {exec $SIZE -x $object} output]
     verbose -log "Size of $object is\n$output" 2
 
     # Remove the header line from the size output. This currently only
@@ -75,7 +75,7 @@ proc host_compile {compline} {
 
     # execute the compiler
     verbose "Compiling for the host using: $CC $INCLUDES $LIBS $compline" 2
-    set status [catch "exec $CC $INCLUDES $LIBS $compline" comp_output]
+    set status [catch {eval exec $CC $INCLUDES $LIBS $compline} comp_output]
     verbose "Compiler returned $comp_output" 2
 
     # prune common warnings and other stuff we can safely ignore

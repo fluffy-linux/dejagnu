@@ -1,6 +1,6 @@
 # Test procedures in lib/utils.exp.				-*- Tcl -*-
 #
-# Copyright (C) 1996-2019, 2020 Free Software Foundation, Inc.
+# Copyright (C) 1996-2019, 2020, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with DejaGnu.  If not, see <http://www.gnu.org/licenses/>.
 
-if [ file exists $srcdir/$subdir/default_procs.tcl ] {
-    source $srcdir/$subdir/default_procs.tcl
-} else {
-    puts "ERROR: $srcdir$subdir/default_procs.tcl doesn't exist"
+foreach lib { default_procs mockutil mockvfs } {
+    set file $srcdir/$subdir/${lib}.tcl
+    if [ file exists $file] {
+	source $file
+    } else {
+	puts "ERROR: $file doesn't exist"
+    }
 }
 
 set file $srcdir/../lib/utils.exp
@@ -145,6 +148,124 @@ if {[which sh] != 0} {
 } else {
   fail "which, sh"
 }
+
+# prepare to test which in mock environment
+reset_mock_trace
+create_mockvfs which-test-vfs
+create_test_interpreter which-test-1 {
+    copy_procs { which }
+    link_procs { verbose }
+    shim_procs { warning }
+    attach_vfs { which-test-vfs }
+}
+create_mock_file which-test-vfs			\
+    "sh"	{}				\
+    "/bin/sh"	{}				\
+    "/etc/foo"	{}
+set_mock_file_attributes which-test-vfs		\
+    "sh"	{ executable }			\
+    "/bin/sh"	{ executable }
+
+test_proc_with_mocks "which, /bin/sh, mockvfs, no PATH"		which-test-1 \
+    { which /bin/sh }		check_result {/bin/sh}
+test_proc_with_mocks "which, /bin/bogus, mockvfs, no PATH"	which-test-1 \
+    { which /bin/bogus }	check_result {0}
+test_proc_with_mocks "which, /etc/foo, mockvfs, no PATH"	which-test-1 \
+    { which /etc/foo }		check_result {0}
+test_proc_with_mocks "which, sh, mockvfs, no PATH"		which-test-1 \
+    { which sh }		check_result {0}
+
+delete_test_interpreter which-test-1
+
+proc test_which { path files tests } {
+    reset_mock_trace
+    create_mockvfs which-test-vfs
+    create_test_interpreter which-test [subst {
+	copy_procs { which }
+	link_procs { verbose }
+	shim_procs { warning }
+	attach_vfs { which-test-vfs }
+	vars { env(PATH) [list $path] }
+    }]
+    foreach {file attributes} $files {
+	create_mock_file		which-test-vfs $file {}
+	set_mock_file_attributes	which-test-vfs $file $attributes
+    }
+    # strip comments from test block
+    foreach test [regsub -all -line "#.*$" $tests ""] {
+	eval [list test_proc_with_mocks \
+		  [format "%s, mockvfs" [string trim [lindex $test 0]]] \
+		  which-test] [regsub -all "\n" $test " "]
+	# The above regsub allows test items to span lines.
+    }
+    delete_test_interpreter which-test
+}
+
+test_which "/bin:/usr/bin" \
+    {   "/bin/sh"	{ executable }
+	"/usr/bin/ksh"	{ executable }
+	"/usr/bin/gcc"  { executable }
+    } {
+	{ { which sh }	check_result {/bin/sh} }
+	{ { which ksh }	check_result {/usr/bin/ksh} }
+	{ { which gcc } check_result {/usr/bin/gcc} }
+	{ { which "gcc -mfoo" } check_result {/usr/bin/gcc} }
+	{ { which "gcc -DFOODIR=\"/usr/share/foo\"" }
+	    check_result {/usr/bin/gcc} }
+	{ { which "gcc -I/usr/special/include" }
+	    check_result {/usr/bin/gcc} }
+    }
+
+test_which "/bin:/usr/bin:/opt/weird:/opt/quux" \
+    {   "/bin/sh"		{ executable }
+	"/usr/bin/gcc"		{ executable }
+	"/opt/weird/foo bar"	{ executable }
+	"/opt/weird/baz"	{ }
+	"/opt/quux/baz"		{ executable }
+	"/opt/weird/we {can get} weirder"
+				{ executable }
+    } {
+	{ { which "gcc -mbar" } check_result {/usr/bin/gcc} }
+	{ { which "{foo bar}" } check_result {/opt/weird/foo bar} }
+	{ { which "{foo bar} --baz" } check_result {/opt/weird/foo bar} }
+	{ { which "\"foo bar\"" } check_result {/opt/weird/foo bar} }
+	{ { which "\"foo bar\" --baz" } check_result {/opt/weird/foo bar} }
+	{ { which "foo\\ bar" } check_result {/opt/weird/foo bar} }
+	{ { which "foo\\ bar --baz" } check_result {/opt/weird/foo bar} }
+	{ { which "baz" } check_result {/opt/quux/baz} }
+	{ { which "baz --bar" } check_result {/opt/quux/baz} }
+	{ { which bogus } check_result {0} }
+	{ { which "{we {can get} weirder}" }
+	    check_result {/opt/weird/we {can get} weirder} }
+	{ { which "{we {can get} weirder} --yes-this-name-is-valid" }
+	    check_result {/opt/weird/we {can get} weirder} }
+	{ { which "\"we {can get} weirder\"" }
+	    check_result {/opt/weird/we {can get} weirder} }
+	{ { which "\"we {can get} weirder\" --yes-this-name-is-valid" }
+	    check_result {/opt/weird/we {can get} weirder} }
+	{ { which "we\\ {can\\ get}\\ weirder" }
+	    check_result {/opt/weird/we {can get} weirder} }
+	{ { which "we\\ {can\\ get}\\ weirder --yes-this-name-is-valid" }
+	    check_result {/opt/weird/we {can get} weirder} }
+    }
+
+test_which "/bin:/usr/bin:/opt/even weirder/bin:/opt/quux" \
+    {	"/bin/sh"			{ executable }
+	"/usr/bin/gcc"			{ executable }
+	"/opt/even weirder/bin/weirdcc"	{ executable }
+	"/opt/quux/foo"			{ executable }
+    } {
+	# ensure that a PATH element containing whitespace is searched
+	{ { which "weirdcc" } check_result {/opt/even weirder/bin/weirdcc} }
+	# ensure that an item in a PATH element after a PATH element
+	# containing whitespace is found
+	{ { which "foo" } check_result {/opt/quux/foo} }
+	# ensure that arguments are correctly split
+	{ { which "weirdcc -DFOODIR=\"/usr/share/foo\"" }
+	    check_result {/opt/even weirder/bin/weirdcc} }
+	{ { which "weirdcc -I/usr/special/include" }
+	    check_result {/opt/even weirder/bin/weirdcc} }
+    }
 
 ### Do not adjust the comment on the next line. The grep test case
 ### depends on it.

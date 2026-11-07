@@ -1,4 +1,4 @@
-# Copyright (C) 2013-2016 Free Software Foundation, Inc.
+# Copyright (C) 2013-2016, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -23,13 +23,14 @@ proc adb_serial {} {
     # only device.
     set serial "[getenv ADB_SERIAL]"
     if { $serial eq "" } {
-	set status [catch "exec adb devices |& wc -l" output]
+	set status [catch {exec adb devices |& wc -l} output]
 	if { $output > 3 } {
 	    perror "Set ADB_SERIAL in your environment to specify the correct target device!"
+	    error "ambiguous target device"
 	}
-	return ""
+	return [list]
     } else {
-	return "-s $serial"
+	return [list -s $serial]
     }
 }
 
@@ -52,12 +53,7 @@ proc adb_open { hostname } {
 	unset board_info($hostname,fileid)
     }
 
-    set serial [adb_serial]
-    if { $serial ne "" } {
-      spawn adb [adb_serial] shell
-    } else {
-      spawn adb shell
-    }
+    eval spawn adb [adb_serial] shell
     if { $spawn_id < 0 } {
 	perror "invalid spawn id from adb"
 	return -1
@@ -84,7 +80,7 @@ proc adb_open { hostname } {
 
     if { $result < 0 } {
 	#	perror "adb shell: couldn't connect after $tries tries."
-	catch "close -i $spawn_id"
+	catch {close -i $spawn_id}
 	set spawn_id -1
     } else {
 	set board_info($hostname,fileid) $spawn_id
@@ -100,9 +96,11 @@ proc adb_open { hostname } {
 proc adb_download {desthost srcfile destfile} {
     set serial [adb_serial]
     verbose "Removing old executable: adb $serial shell rm $destfile" 3
-    set status [catch "exec adb $serial shell rm $destfile |& cat" output]
+    set status [catch {
+	eval exec adb $serial [list shell rm $destfile] |& cat} output]
     verbose "Downloading: adb $serial shell push $srcfile $destfile" 3
-    set status [catch "exec adb $serial push $srcfile $destfile |& cat" output]
+    set status [catch {
+	eval exec adb $serial [list push $srcfile $destfile] |& cat} output]
     if { $status == 0 } {
 	verbose "Copied $srcfile to $destfile" 2
 	return $destfile
@@ -117,17 +115,20 @@ proc adb_file {dest op args} {
     verbose "Executing command: $op $args" 2
     switch -- $op {
 	exists {
-	    set status [catch "exec adb [adb_serial] shell ls |& cat" out]
+	    set status [catch {
+		eval exec adb [adb_serial] [list shell ls] |& cat} out]
 	}
 	delete {
-	    set status [catch "exec adb [adb_serial] shell rm $file |& cat" rmout]
+	    set status [catch {
+		eval exec adb [adb_serial] [list shell rm $file] |& cat} rmout]
 	}
     }
     return [eval remote_raw_file \"$dest\" \"$op\" $args]
 }
 
 proc adb_upload {desthost srcfile destfile} {
-    set status [catch "exec adb [adb_serial] pull $srcfile $destfile |& cat" output]
+    set status [catch {
+	eval exec adb [adb_serial] [list pull $srcfile $destfile] |& cat} output]
     if { $status == 0 } {
 	verbose "Copied $srcfile to $destfile" 2
 	return $destfile
@@ -166,7 +167,10 @@ proc adb_exec { boardname cmd args } {
 
     # Execute commands only from temporary folder, therefore do "cd" first
     global android_tmp_dir
-    set status [catch "exec cat $inp | adb [adb_serial] shell cd $android_tmp_dir \&\& \( $cmd $pargs \) \\; echo XYZ\\\$\\\{\?\\\}ZYX |& cat" output]
+    set status [catch {
+	eval [list exec cat $inp | adb] [adb_serial] \
+	    [list shell cd $android_tmp_dir && ( $cmd] $pargs [list ) \; \
+		 echo XYZ\$\{?\}ZYX |& cat]} output]
 
     # `status' doesn't mean much here other than adb worked ok.
     # What we want is whether $cmd ran ok.

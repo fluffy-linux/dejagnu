@@ -1,5 +1,5 @@
 # report-card.awk -- Test summary tool
-# Copyright (C) 2018, 2021, 2024 Free Software Foundation, Inc.
+# Copyright (C) 2018, 2021, 2024, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -91,6 +91,11 @@ BEGIN {
 	for (i = 1; i < ARGC; i++)
 	    if (i in ARGV)
 		print "  "ARGV[i]
+    }
+    # bail out if there are no files to read
+    if (FileCount == 0) {
+	print "dejagnu-report-card: warning: no files read"
+	exit 1
     }
 }
 

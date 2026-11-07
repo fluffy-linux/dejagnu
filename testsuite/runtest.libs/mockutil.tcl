@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Free Software Foundation, Inc.
+# Copyright (C) 2019, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -184,10 +184,12 @@ proc match_argpat { argpat call } {
 #       prefix mode:[!] { }
 #       prefix mode:[C] [ { count } | count ]
 #   }
+#   check_result { regexp }
 # }
 proc test_proc_with_mocks { name sicmd code args } {
     array set opt {
 	check_calls {}
+	check_result {}
     }
     foreach { key value } $args {
 	if { ![info exists opt($key)] } {
@@ -198,7 +200,7 @@ proc test_proc_with_mocks { name sicmd code args } {
 
     verbose "--------  begin test: $name"
     reset_mock_trace
-    $sicmd eval $code
+    set retval [$sicmd eval $code]
     dump_mock_trace
 
     set result pass
@@ -252,6 +254,14 @@ proc test_proc_with_mocks { name sicmd code args } {
 	    verbose "  expected trace record not found... failed!"
 	    set result fail
 	    continue
+	}
+    }
+    if { $opt(check_result) ne {} } {
+	verbose "checking regexp {$opt(check_result)}\
+		against return {$retval}"
+	if { ! [regexp -- $opt(check_result) $retval] } {
+	    verbose "  failed!"
+	    set result fail
 	}
     }
 

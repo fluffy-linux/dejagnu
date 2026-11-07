@@ -5513,8 +5513,22 @@ A glob pattern representing the files to find.
 Searches the execution path for an executable file like the BSD
 @code{which(1)} utility.  This procedure uses the shell environment
 variable @code{PATH}.  It returns @b{0} if the binary is not in the
-path or if the @code{PATH} environment variable is not set.  If the
-file is in the path, this procedure returns the full path to the file.
+path or if the @code{PATH} environment variable is not set.  If an
+executable file is found, this procedure returns the full absolute
+name of the file, as from Tcl @code{file normalize}.
+
+This procedure has special handling for some cases: if a relative or
+absolute file name is given, it checks for the existence of the named
+executable file; if the name given includes arguments, it strips them
+and returns only the name of the executable file.
+
+If the argument contains a forward slash before the first space, the
+path search is skipped and only the named file is considered.
+
+If the argument contains spaces, there is an ambiguity between a file
+name containing spaces and a command with arguments.  This ambiguity
+is resolved by checking the file system and returning the longest
+left-anchored match.
 
 @quotation
 @t{@b{which} @i{file}}
@@ -5522,7 +5536,9 @@ file is in the path, this procedure returns the full path to the file.
 
 @table @asis
 @item @code{file}
-The executable program or shell script to look for.
+The executable program or shell script to look for.  This value may
+also be an absolute or relative file name and/or contain arguments
+after the name of an executable.
 @end table
 
 @node grep procedure, prune procedure, which procedure, Utility Procedures

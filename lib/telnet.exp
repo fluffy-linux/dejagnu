@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2019, 2020 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019, 2020, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -157,7 +157,7 @@ proc telnet_open { hostname args } {
 		break
 	    }
 	    -re "Connection refused.*$" {
-		catch "exp_send \"\003\"" foo
+		catch {exp_send "\003"} foo
 		sleep 5
 		warning "telnet: connection refused."
 	    }

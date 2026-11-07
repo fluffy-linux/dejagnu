@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2019, 2020 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019, 2020, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -21,7 +21,7 @@
 #
 proc dumpvars { args } {
     uplevel 1 [list foreach i [uplevel 1 "info vars $args"] {
-	if { [catch "array names $i" names ] } {
+	if { [catch {array names $i} names ] } {
 	    eval "puts \"$i = \$$i\""
 	} else {
 	    foreach k $names {
@@ -36,7 +36,7 @@ proc dumpvars { args } {
 #
 proc dumplocals { args } {
     uplevel 1 [list foreach i [uplevel 1 "info locals $args"] {
-	if { [catch "array names $i" names ] } {
+	if { [catch {array names $i} names ] } {
 	    eval "puts \"${i} = \$${i}\""
 	} else {
 	    foreach k $names {
@@ -60,7 +60,7 @@ proc dumprocs { args } {
 proc dumpwatch { args } {
     foreach i [uplevel 1 "info vars $args"] {
 	set tmp ""
-	if { [catch "uplevel 1 array name $i" names] } {
+	if { [catch {uplevel 1 array name $i} names] } {
 	    set tmp [uplevel 1 trace vinfo $i]
 	    if {$tmp ne ""} {
 		puts "$i $tmp"
@@ -99,7 +99,7 @@ proc watchvar { v ignored op } {
 # Watch when a variable is written.
 #
 proc watchunset { arg } {
-    if { [catch "uplevel 1 array name $arg" names ] } {
+    if { [catch {uplevel 1 array name $arg} names ] } {
 	if {![uplevel 1 info exists $arg]} {
 	    puts stderr "$arg does not exist"
 	    return
@@ -119,7 +119,7 @@ proc watchunset { arg } {
 # Watch when a variable is written.
 #
 proc watchwrite { arg } {
-    if { [catch "uplevel 1 array name $arg" names ] } {
+    if { [catch {uplevel 1 array name $arg} names ] } {
 	if {![uplevel 1 info exists $arg]} {
 	    puts stderr "$arg does not exist"
 	    return
@@ -139,7 +139,7 @@ proc watchwrite { arg } {
 # Watch when a variable is read.
 #
 proc watchread { arg } {
-    if { [catch "uplevel 1 array name $arg" names ] } {
+    if { [catch {uplevel 1 array name $arg} names ] } {
 	if {![uplevel 1 info exists $arg]} {
 	    puts stderr "$arg does not exist"
 	    return
@@ -161,15 +161,15 @@ proc watchread { arg } {
 proc watchdel { args } {
     foreach i [uplevel 1 "info vars $args"] {
 	set tmp ""
-	if { [catch "uplevel 1 array name $i" names] } {
-	    catch "uplevel 1 trace vdelete $i w watchvar"
-	    catch "uplevel 1 trace vdelete $i r watchvar"
-	    catch "uplevel 1 trace vdelete $i u watchvar"
+	if { [catch {uplevel 1 array name $i} names] } {
+	    catch {uplevel 1 trace vdelete $i w watchvar}
+	    catch {uplevel 1 trace vdelete $i r watchvar}
+	    catch {uplevel 1 trace vdelete $i u watchvar}
 	} else {
 	    foreach k $names {
-		catch "uplevel 1 trace vdelete [set i]($k) w watcharray"
-		catch "uplevel 1 trace vdelete [set i]($k) r watcharray"
-		catch "uplevel 1 trace vdelete [set i]($k) u watcharray"
+		catch {uplevel 1 trace vdelete [set i]($k) w watcharray}
+		catch {uplevel 1 trace vdelete [set i]($k) r watcharray}
+		catch {uplevel 1 trace vdelete [set i]($k) u watcharray}
 	    }
 	}
     }

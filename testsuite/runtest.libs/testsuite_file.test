@@ -1,6 +1,6 @@
 # test "testsuite file" API call				-*- Tcl -*-
 
-# Copyright (C) 2018 Free Software Foundation, Inc.
+# Copyright (C) 2018, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -170,11 +170,11 @@ set testbuilddir $objdir
 set testdir [file join $srcdir $subdir]
 
 run_tests [subst -nocommands {
-    { lib_ret_test testsuite { file -source -top } $srcdir
+    { lib_ret_test testsuite { file -source -top } {$srcdir}
 	"testsuite file -source -top" }
-    { lib_ret_test testsuite { file -source -test } $testdir
+    { lib_ret_test testsuite { file -source -test } {$testdir}
 	"testsuite file -source -test" }
-    { lib_ret_test testsuite { file -object -top } $objdir
+    { lib_ret_test testsuite { file -object -top } {$objdir}
 	"testsuite file -object -top" }
     { lib_errpat_test testsuite { file -source -test {[bogus]} foo }
 	"directory '*\\\\[bogus\\\\]' does not exist"
@@ -193,7 +193,7 @@ if { [file isdirectory [file join $objdir empty-test-dir]] } {
 run_tests [subst {
     { lib_ret_test testsuite
 	{ file -object -top -hypothetical empty-test-dir foo }
-	[file join $objdir empty-test-dir foo]
+	{[file join $objdir empty-test-dir foo]}
 	"testsuite file implying hypothetical directory" }
 }]
 
@@ -206,7 +206,7 @@ if { ![file isdirectory [file join $objdir empty-test-dir]] } {
 run_tests [subst {
     { lib_ret_test testsuite
 	{ file -object -top empty-test-dir foo }
-	[file join $objdir empty-test-dir foo]
+	{[file join $objdir empty-test-dir foo]}
 	"testsuite file implying new object directory" }
 }]
 

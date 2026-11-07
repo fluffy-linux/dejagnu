@@ -1,4 +1,4 @@
-# Copyright (C) 2022 Free Software Foundation, Inc.
+# Copyright (C) 2022, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -44,8 +44,18 @@ proc create_mock_file { vfsname args } {
 	    regsub -all -- $indent $contents "\n" contents
 	    regsub {\n\s+\Z} $contents "\n" contents
 	}
+	set vfs(file,attr,$filename) {}
 	set vfs(file,data,$filename) $contents
 	set vfs(file,length,$filename) [string length $contents]
+    }
+}
+
+# set_mock_file_attributes vfsname {filename attributes}...
+proc set_mock_file_attributes { vfsname args } {
+    upvar #0 $vfsname vfs
+
+    foreach {filename attributes} $args {
+	set vfs(file,attr,$filename) $attributes
     }
 }
 
@@ -78,11 +88,54 @@ proc mockvfs_op_file	{ vfsname sicmd op args } {
 	    if { $point == -1 } { return . }
 	    return [string range $name 0 [expr {$point-1}]]
 	}
+	join {
+	    # mockvfs filenames are currently in a flat namespace
+	    return [join $args /]
+	}
+	split {
+	    set name [lindex $args 0]
+	    set ret [split $name /]
+	    if { [lindex $ret 0] eq {} } { lset ret 0 / }
+	    return $ret
+	}
 	tail {
 	    set name [lindex $args 0]
 	    set point [string last / $name]
 	    if { $point == -1 } { return $name }
 	    return [string range $name [expr {$point+1}] end]
+	}
+	exists {
+	    set name [lindex $args 0]
+	    return [info exists vfs(file,data,$name)]
+	}
+	normalize {
+	    # mockvfs filenames are currently unique
+	    set name [lindex $args 0]
+	    return $name
+	}
+	executable {
+	    set name [lindex $args 0]
+	    if { [lsearch $vfs(file,attr,$name) executable] == -1 } {
+		return 0
+	    } else {
+		return 1
+	    }
+	}
+	isdirectory {
+	    set name [lindex $args 0]
+	    if { [lsearch $vfs(file,attr,$name) directory] == -1 } {
+		return 0
+	    } else {
+		return 1
+	    }
+	}
+	isfile {
+	    set name [lindex $args 0]
+	    if { [lsearch $vfs(file,attr,$name) directory] == -1 } {
+		return 1
+	    } else {
+		return 0
+	    }
 	}
 	default {
 	    error "mockvfs: file $op not implemented"

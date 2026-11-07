@@ -149,35 +149,69 @@ proc find { rootdir pattern } {
 # the binary is not in the path. If the binary is in the path, it
 # returns the full path to the binary.
 #
+# This function has a complex bit of legacy behavior: for many years, it
+# used a Tcl list command to split its argument at the first whitespace.
+# That means that Tcl list syntax could be used to quote a command name
+# containing whitespace.  Testsuites may possibly depend on this
+# undocumented behavior, so it must be preserved, but it also must be
+# considered when performing the new search for a left-anchored longest
+# match from the filesystem.  Since POSIX actually allows braces in command
+# names, both interpretations of a braced first word must be checked.  If
+# both alternatives exist, the legacy interpretation is used.
 proc which { file } {
     global env
 
-    # strip off any extraneous arguments (like flags to the compiler)
-    set file [lindex $file 0]
+    # trim leading whitespace from the filename
+    set file [string trimleft $file]
 
-    # if the filename has a path component, then the file must exist
-    if {[llength [file split $file]] > 1} {
-	verbose "Checking $file" 2
-	if {[file exists $file] && [file executable $file]} {
-	    verbose "file $file is executable" 2
-	    return [file normalize $file]
-	} else {
+    # extract the first whitespace-delimited field from the filename
+    if { [catch {lindex $file 0} initial] } {
+	# could not parse filename as a Tcl list, try regexp instead
+	if { ! [regexp {^(?:[^\\[:space:]]|\\.)+} $file initial] } {
+	    # no match?  ->  nothing to do
 	    return 0
 	}
     }
 
-    # Otherwise the file must exist in the PATH
-    if {[info exists env(PATH)]} {
-	set path [split $env(PATH) ":"]
+    set candidates [list]
+    # determine whether to use command path or filesystem search
+    if { [llength [file split $initial]] > 1 } {
+	# the filename contains a directory prefix
+	#  ->  find the left-anchored longest match in the filesystem
+	foreach match [regexp -all -indices -inline {[[:space:]]+} $file] {
+	    set candidates [linsert $candidates 0 \
+			      [string range $file 0 \
+				   [expr {[lindex $match 0] - 1}]]]
+	}
+	# the entire argument is also a candidate
+	set candidates [linsert $candidates 0 $file]
+	# the first list element of the argument is also the first
+	# candidate, if it contains quoted whitespace
+	if { [regexp {[[:space:]]} $initial] } {
+	    set candidates [linsert $candidates 0 $initial]
+	}
     } else {
-	return 0
+	# the filename does not contain a directory prefix
+	#  ->  search the command path
+	if { [info exists env(PATH)] } {
+	    set pathlist [split $env(PATH) :]
+	} else {
+	    # path search fails if PATH is not set in the environment
+	    return 0
+	}
+
+	foreach dir $pathlist {
+	    lappend candidates [file normalize [file join $dir $initial]]
+	}
     }
 
-    foreach dir $path {
-	verbose "Checking $dir for $file" 3
-	set filename [file normalize [file join $dir $file]]
-	if {[file exists $filename]} {
-	    if {[file executable $filename]} {
+    foreach filename $candidates {
+	verbose "Checking for $filename" 3
+	if { [file exists $filename] } {
+	    if { [file isdirectory $filename] } {
+		warning \
+		    "found directory $filename while searching for executable"
+	    } elseif { [file executable $filename] } {
 		verbose "Choosing $filename" 2
 		return [file normalize $filename]
 	    } else {
@@ -185,7 +219,7 @@ proc which { file } {
 	    }
 	}
     }
-    # not in path
+    # search complete, command not located
     return 0
 }
 

@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2019, 2020 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019, 2020, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -78,7 +78,7 @@ set perror_threshold 1
 
 proc mail_file { file to subject } {
     if {[file readable $file]} {
-	catch "exec mail -s \"$subject\" $to < $file"
+	catch {exec mail -s "$subject" $to < $file}
     }
 }
 
@@ -112,16 +112,16 @@ proc open_logs { } {
     if { $tool eq "" } {
 	set tool testrun
     }
-    catch "file delete -force -- $outdir/$tool.sum"
+    catch {file delete -force -- $outdir/$tool.sum}
     set sum_file [open [file join $outdir $tool.sum] w]
     if { $xml } {
-	catch "file delete -force -- $outdir/$tool.xml"
+	catch {file delete -force -- $outdir/$tool.xml}
 	set xml_file [open [file join $outdir $tool.xml] w]
 	xml_output "<?xml version=\"1.1\"?>"
 	insertdtd
 	xml_output "<testsuite>"
     }
-    catch "file delete -force -- $outdir/$tool.log"
+    catch {file delete -force -- $outdir/$tool.log}
     log_file -a $outdir/$tool.log
     verbose "Opening log files in $outdir"
     if { $tool eq "testrun" } {
@@ -139,10 +139,10 @@ proc close_logs { } {
 
     if { $xml } {
 	xml_output "</testsuite>"
-	catch "close $xml_file"
+	catch {close $xml_file}
     }
 
-    catch "close $sum_file"
+    catch {close $sum_file}
 }
 
 # Check build host triplet for PATTERN.

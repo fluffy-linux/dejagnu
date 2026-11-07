@@ -345,7 +345,7 @@ proc load_file { args } {
 	if {! [catch {file exists $file} result] && $result} {
 	    set found 1
 	    verbose "Found $file"
-	    if { [catch "uplevel #0 source $file"] == 1 } {
+	    if { [catch {uplevel #0 [list source $file]}] == 1 } {
 		send_error "ERROR: tcl error sourcing $file.\n"
 		global errorInfo
 		if {[info exists errorInfo]} {
@@ -380,7 +380,7 @@ proc search_and_load_file { type filelist dirlist } {
 		} else {
 		    verbose "Loading $filename"
 		}
-		if {[catch "uplevel #0 source $filename" error] == 1} {
+		if {[catch {uplevel #0 [list source $filename]} error] == 1} {
 		    global errorInfo
 		    send_error "ERROR: tcl error sourcing $type $filename.\n$error\n"
 		    if {[info exists errorInfo]} {
@@ -925,7 +925,7 @@ if {$target_alias eq ""} {
 }
 
 proc get_local_hostname { } {
-    if {[catch "info hostname" hb]} {
+    if {[catch {info hostname} hb]} {
 	set hb ""
     } else {
 	regsub "\\..*$" $hb "" hb
@@ -1651,7 +1651,7 @@ proc runtest { test_file_name } {
 	    }
 	}
 
-	if { [catch "uplevel #0 source $test_file_name" msg] == 1 } {
+	if { [catch {uplevel #0 [list source $test_file_name]} msg] == 1 } {
 	    # If we have a Tcl error, propagate the exit status so
 	    # that 'make' (if it invokes runtest) notices the error.
 	    global exit_status exit_error

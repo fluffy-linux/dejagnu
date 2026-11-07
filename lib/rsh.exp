@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2019, 2020 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019, 2020, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -177,8 +177,13 @@ proc rsh_download {desthost srcfile destfile} {
 	set desthost [board_info $desthost hostname]
     }
 
-    set status [catch "exec $RSH $rsh_useropts $desthost rm -f $destfile |& cat" output]
-    set status [catch "exec $RCP $srcfile $rcp_user$desthost:$destfile |& cat" output]
+    set status [catch {
+	eval [list exec $RSH] $rsh_useropts \
+	    [list $desthost rm -f $destfile |& cat]
+    } output]
+    set status [catch {
+	exec $RCP $srcfile "$rcp_user$desthost:$destfile" |& cat
+    } output]
     if { $status == 0 } {
 	verbose "Copied $srcfile to $desthost:$destfile" 2
 	return $destfile
@@ -209,7 +214,9 @@ proc rsh_upload {desthost srcfile destfile} {
 	set desthost [board_info $desthost hostname]
     }
 
-    set status [catch "exec $RCP $rcp_user$desthost:$srcfile $destfile" output]
+    set status [catch {
+	exec $RCP "$rcp_user$desthost:$srcfile" $destfile
+    } output]
     if { $status == 0 } {
 	verbose "Copied $desthost:$srcfile to $destfile" 2
 	return $destfile

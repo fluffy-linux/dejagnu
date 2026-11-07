@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2019, 2020 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019, 2020, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -104,10 +104,10 @@ proc close_wait_program { program_id pid {wres_varname ""} } {
     # This closes the program's stdin.  This should cause well behaved
     # interactive programs to exit.  This will hang if the kill
     # doesn't work.  Nothin' to do, and it's not OK.
-    catch "close -i $program_id"
+    catch {close -i $program_id}
 
     # Reap it.
-    set res [catch "wait -i $program_id" wres]
+    set res [catch {wait -i $program_id} wres]
     if { $exec_pid != -1 && [llength $pid] == 1 } {
 	# We reaped the process, so cancel the pending force-kills, as
 	# otherwise if the PID is reused for some other unrelated
@@ -164,7 +164,7 @@ proc local_exec { commandline inp outp timeout } {
     global errorInfo
     if { $inp eq "" && $outp eq "" } {
 	set id -1
-	set result [catch "eval spawn -ignore SIGHUP \{${commandline}\}" pid]
+	set result [catch {spawn -ignore SIGHUP $commandline} pid]
 	if { $result == 0 } {
 	    set result2 0
 	} else {
@@ -203,7 +203,7 @@ proc local_exec { commandline inp outp timeout } {
 	    return [list -1 "open of $commandline $inp $outp failed: $errorInfo"]
 	}
 	set pid [pid $id]
-	set result [catch "spawn -ignore SIGHUP -leaveopen $id" result2]
+	set result [catch {spawn -ignore SIGHUP -leaveopen $id} result2]
     }
     # Prepend "-" to each pid, to generate the "process group IDs" needed by
     # kill.
@@ -217,7 +217,7 @@ proc local_exec { commandline inp outp timeout } {
 	    set foo ""
 	}
 	verbose "spawn -open $id failed, $result $result2, $foo"
-	catch "close $id"
+	catch {close $id}
 	return [list -1 "spawn failed"]
     }
 
@@ -251,7 +251,7 @@ proc local_exec { commandline inp outp timeout } {
 	    # us to hang.
 	    catch {fconfigure $id -blocking false}
 	}
-	set r2 [catch "close $id" res]
+	set r2 [catch {close $id} res]
     } else {
 	verbose "waitres is $wres" 2
 	if { $r2 == 0 } {
@@ -384,9 +384,9 @@ proc standard_close { host } {
 	    set pid [pid $oid]
 	    unset board_info($host,fileid_origid)
 	} else {
-	    set result [catch "exp_pid -i $shell_id" pid]
+	    set result [catch {exp_pid -i $shell_id} pid]
 	    if { $result != 0 || $pid <= 0 } {
-		set result [catch "pid $shell_id" pid]
+		set result [catch {pid $shell_id} pid]
 		if { $result != 0 } {
 		    set pid -1
 		}
@@ -402,7 +402,7 @@ proc standard_close { host } {
 		# to hang.
 		catch {fconfigure $oid -blocking false}
 	    }
-	    catch "close $oid"
+	    catch {close $oid}
 	}
 
 	unset board_info($host,fileid)
@@ -468,7 +468,7 @@ proc remote_download { dest file args } {
 	    return $file
 	} else {
 	    verbose -log "Downloading on $dest to $destfile: $file" 2
-	    set result [catch "exec cp -p $file $destfile" output]
+	    set result [catch {exec cp -p $file $destfile} output]
 	    if {[regexp "same file|are identical" $output]} {
 		set result 0
 		set output ""
@@ -522,7 +522,7 @@ proc standard_download {dest file destfile} {
 	}
     }
 
-    set result [catch "exec cp -p $file $destfile" output]
+    set result [catch {exec cp -p $file $destfile} output]
     if {[regexp "same file|are identical" $output]} {
 	set result 0
 	set output ""
@@ -550,7 +550,7 @@ proc remote_upload {dest srcfile args} {
 	if { $destfile eq "" || $srcfile eq $destfile } {
 	    return $srcfile
 	}
-	set result [catch "exec cp -p $srcfile $destfile" output]
+	set result [catch {exec cp -p $srcfile $destfile} output]
 	return $destfile
     }
 
@@ -574,7 +574,7 @@ proc standard_upload { dest srcfile destfile } {
 	return [rsh_upload $dest $srcfile $destfile]
     }
 
-    set result [catch "exec cp -p $srcfile $destfile" output]
+    set result [catch {exec cp -p $srcfile $destfile} output]
     if {[regexp "same file|are identical" $output]} {
 	set result 0
 	set output ""
@@ -699,10 +699,10 @@ proc standard_transmit {dest file} {
     set fd [open $file r]
     while { [gets $fd cur_line] >= 0 } {
 	set errmess ""
-	catch "send -i $shell_id \"$cur_line\r\"" errmess
+	catch {send -i $shell_id "$cur_line\r"} errmess
 	if {[string match "write\(spawn_id=\[0-9\]+\):" $errmess]} {
 	    perror "sent \"$cur_line\" got expect error \"$errmess\""
-	    catch "close $fd"
+	    catch {close $fd}
 	    return -1
 	}
 	set chars [expr {$chars + ([string length $cur_line] * 10)}]
@@ -735,7 +735,7 @@ proc standard_send { dest string } {
 	set shell_id [board_info $dest fileid]
 	verbose "shell_id in standard_send is $shell_id" 3
 	verbose "send -i [board_info $dest fileid] -- $string" 3
-	if {[catch "send -i [board_info $dest fileid] -- \$string" errorInfo]} {
+	if {[catch {send -i [board_info $dest fileid] -- $string} errorInfo]} {
 	    return $errorInfo
 	} else {
 	    return ""
@@ -892,7 +892,7 @@ proc remote_spawn { dest commandline args } {
 		    return -1
 		}
 	    }
-	    set result [catch "spawn -leaveopen $id" result2]
+	    set result [catch {spawn -leaveopen $id} result2]
 	    if { $result == 0 && $result2 == 0} {
 		verbose "setting board_info($dest,fileid) to $spawn_id" 3
 		set board_info($dest,fileid) $spawn_id
@@ -907,11 +907,11 @@ proc remote_spawn { dest commandline args } {
 		    set foo ""
 		}
 		verbose "spawn -open $id failed, $result $result2, $foo"
-		catch "close $id"
+		catch {close $id}
 		return -1
 	    }
 	} else {
-	    set result [catch "spawn $commandline" pid]
+	    set result [catch {spawn $commandline} pid]
 	    if { $result == 0 } {
 		verbose "setting board_info($dest,fileid) to $spawn_id" 3
 		set board_info($dest,fileid) $spawn_id
@@ -1188,11 +1188,11 @@ proc standard_wait { dest timeout } {
 		verbose "$id $oid"
 		unset board_info($dest,fileid)
 		unset board_info($dest,fileid_origid)
-		catch "close -i $id"
+		catch {close -i $id}
 		# I don't believe this. You HAVE to do a wait, even tho
 		# it won't work! stupid ()*$%*)(% expect...
-		catch "wait -i $id"
-		set r2 [catch "close $oid" res]
+		catch {wait -i $id}
+		set r2 [catch {close $oid} res]
 		if { $r2 != 0 } {
 		    verbose "close result is $res"
 		    set status 1

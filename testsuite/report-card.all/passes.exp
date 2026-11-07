@@ -1,4 +1,4 @@
-# Copyright (C) 2018, 2024 Free Software Foundation, Inc.
+# Copyright (C) 2018, 2024, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -185,7 +185,7 @@ proc run_multipass_output_test { filetag } {
     # run the dejagnu-report-card tool
     set separator_count 0
     spawn /bin/sh -c \
-	"cd [testsuite file -object -test passes]\
+	"cd \"[testsuite file -object -test passes]\"\
 	 && exec $LAUNCHER report-card ${filetag}-*.sum"
 
     # skip header

@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2016 Free Software Foundation, Inc.
+# Copyright (C) 1992-2016, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -91,7 +91,7 @@ proc util_start { args } {
     } else {
 	send_log "Spawning \"$cmd $cmd_arg $file\"\n"
     }
-    catch "exec $cmd $cmd_arg $file" comp_output
+    catch {eval [list exec $cmd] $cmd_arg $file} comp_output
     if {$comp_output ne ""} {
 	send_log "$comp_output\n"
     }

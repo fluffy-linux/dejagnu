@@ -3,10 +3,158 @@
 	* doc/dejagnu.texi (remote_load procedure): Document.
 	(standard_load procedure): Document.
 
+2026-09-16  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* lib/utils.exp (which): Rewrite.  The new implementation builds a
+	list of possible filenames, either by variably splitting on
+	whitespace or walking the shell command path obtained from the
+	PATH environment variable.
+
+	* testsuite/runtest.libs/mockvfs.tcl (mockvfs_op_file): Add
+	isdirectory and isfile operations to the implemented subset.
+
+	* testsuite/runtest.libs/utils.test: Support for testing the which
+	procedure with an absolute file name when the full absolute name
+	of the object directory contains whitespace is restored.
+
+2026-09-05  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* testsuite/runtest.libs/utils.test: Add tests for GCC arguments
+	containing absolute file names.  Add tests for PATH search when a
+	PATH entry contains whitespace.
+	(test_which): Properly handle PATH value containing whitespace.
+
+2026-08-21  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* testsuite/runtest.libs/libs.exp (process_test): Add backslash to
+	regexp for matching valid test names.
+
+	* testsuite/runtest.libs/utils.test: Add tests for other forms of
+	Tcl list syntax quoting whitespace.  Include bizarre filenames.
+	(test_which): Allow test items to span lines without requiring
+	backslash-newline in the test block.
+
+2026-08-20  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* testsuite/runtest.libs/libs.exp (process_test): Add braces to
+	regexp for matching valid test names.
+
+	* testsuite/runtest.libs/utils.test: Add tests to cover all
+	branches in existing which procedure.
+
+2026-08-01  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* testsuite/runtest.libs/libs.exp (process_test): Avoid use of Tcl
+	list operations to split a string, discovered when tests began
+	producing test names that were invalid Tcl list syntax.
+
+	* testsuite/runtest.libs/utils.test: Add tests for splitting
+	arguments given with a command and handling the current support
+	for the edge case of a command containing a space.
+
+2026-07-27  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* testsuite/runtest.libs/mockutil.tcl (test_proc_with_mocks): Add
+	check_result option to match a regexp against the return value of
+	the tested code fragment.
+
+	* testsuite/runtest.libs/mockvfs.tcl (create_mock_file):
+	Initialize file attributes to empty list.
+	(set_mock_file_attributes): New procedure.
+	(mockvfs_op_file): Add exists, join, split, executable, and
+	normalize operations to the implemented subset.
+
+	* testsuite/runtest.libs/utils.test: Load test mock libraries.
+	Add tests for which using mock environments.
+
+2026-07-25  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602 / PR47385
+
+	* doc/dejagnu.texi (which procedure): Document behavior when given
+	a relative or absolute file name.  Document stripping command
+	arguments from provided string.  These features were previously
+	present but undocumented.
+
+2026-07-11  Jacob Bachmeyer  <jcb@gnu.org>
+
+	* commands/report-card.awk: Exit with an error return if there are
+	no files to read instead of attempting to read standard input.
+
+	PR44602
+
+	* runtest.exp (load_file): Use list(n) to quote script arguments
+	to uplevel(n) to protect spaces in interpolated file names.
+	(search_and_load_file): Likewise.
+	(runtest): Likewise.
+
+	* testsuite/lib/runtest.exp (runtest_setup_nested_testsuite):
+	Quote directory names when writing nested-init.exp to ensure that
+	it will be valid Tcl if the absolute names contain whitespace.
+
+	* testsuite/report-card.all/onetest.exp: Quote object directory
+	names in shell invocations to properly handle absolute names
+	containing whitespace.
+	* testsuite/report-card.all/passes.exp
+	(run_multipass_output_test): Likewise.
+
+	* testsuite/runtest.libs/testsuite_file.test: Revise tests to
+	protect interpolations of directory variables.
+
+	* testsuite/runtest.libs/utils.test: Declare test of which
+	procedure with an absolute file name unsupported if the full
+	absolute name of the object directory contains whitespace.
+
+2026-07-03  Jacob Bachmeyer  <jcb@gnu.org>
+
+	PR44602
+
+	* config/adb.exp (adb_serial): Raise an error if multiple devices
+	are present and ADB_SERIAL is not set in the environment.
+	(adb_open, adb_download, adb_file, adb_upload, adb_exec): Use
+	eval(n) and list(n) to interpolate [adb_serial] when spawning
+	child processes and protect other variable interpolations.
+
+	* lib/dejagnu.exp (host_compile): Add explicit eval(n) to properly
+	interpolate argument list.
+	* lib/rsh.exp (rsh_download): Likewise.
+
+	* lib/ssh.exp (ssh_close): Remove unused local variables.
+	Refactor to use list operations instead of string interpolation.
+
+	* testsuite/lib/util-defs.exp (util_start): Add eval(n) to
+	properly interpolate argument lists when spawning child process.
+
 2026-07-02  Jacob Bachmeyer  <jcb@gnu.org>
 
 	* baseboards/riscv-sim.exp, config/adb.exp: Update license notice
 	to GPLv3 after past oversights.
+
+	PR44602
+
+	* runtest.exp: Change script argument to Tcl catch(n) to use
+	braces instead of double quotes throughout.
+	* config/aarch64-fv8.exp, config/adb.exp: Likewise.
+	* lib/debugger.exp, lib/dejagnu.exp, lib/dg.exp: Likewise.
+	* lib/framework.exp, lib/remote.exp, lib/rlogin.exp: Likewise.
+	* lib/rsh.exp, lib/ssh.exp, lib/target.exp, lib/telnet.exp:
+	Likewise.
+	* testsuite/lib/libsup.exp, testsuite/lib/util-defs.exp: Likewise.
+
+	* lib/remote.exp (local_exec): Remove unnecessary eval(n) after
+	changing quotes on catch(n) to braces.
 
 2026-06-17  Jacob Bachmeyer  <jcb@gnu.org>
 

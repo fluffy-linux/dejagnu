@@ -1,4 +1,4 @@
-# Copyright (C) 1997-2016, 2018, 2019 Free Software Foundation, Inc.
+# Copyright (C) 1997-2016, 2018, 2019, 2026 Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -21,7 +21,7 @@ proc process_test { test } {
     global EXPECT
 
     verbose "Running $test ..." 0
-    set text "\[- A-Za-z0-9\,\.\;\"\_\:\'\`\(\)\!\#\=\+\/\?\&\*]*"
+    set text "\[- A-Za-z0-9\,\.\;\"\\\\\_\:\'\`\(\)\{\}\!\#\=\+\/\?\&\*]*"
 
     set timeout 150
 
@@ -44,20 +44,20 @@ proc process_test { test } {
 		perror "$test wouldn't run" 0
 	    }
 	    -re {^[\r\n]+} { exp_continue }
-	    -re "^\[^\r\n\]*NOTSUPPORTED: $text\[\r\n\]*" {
-		unsupported "[lrange $expect_out(0,string) 1 end]"
+	    -re "^\[^\r\n\]*NOTSUPPORTED: ($text)\[\r\n\]*" {
+		unsupported $expect_out(1,string)
 		exp_continue
 	    }
-	    -re "^\[^\r\n\]*NOTTESTED: $text\[\r\n\]*" {
-		untested "[lrange $expect_out(0,string) 1 end]"
+	    -re "^\[^\r\n\]*NOTTESTED: ($text)\[\r\n\]*" {
+		untested $expect_out(1,string)
 		exp_continue
 	    }
-	    -re "^\[^\r\n\]*PASSED: $text\[\r\n\]*" {
-		pass "[lrange $expect_out(0,string) 1 end]"
+	    -re "^\[^\r\n\]*PASSED: ($text)\[\r\n\]*" {
+		pass $expect_out(1,string)
 		exp_continue
 	    }
-	    -re "^\[^\r\n\]*FAILED: $text\[\r\n\]*" {
-		fail "[lrange $expect_out(0,string) 1 end]"
+	    -re "^\[^\r\n\]*FAILED: ($text)\[\r\n\]*" {
+		fail $expect_out(1,string)
 		exp_continue
 	    }
 	    -re "^\[^\r\n\]*WARNED: $text\[\r\n\]*" {

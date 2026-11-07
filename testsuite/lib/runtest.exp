@@ -1,4 +1,5 @@
-# Copyright (C) 1992-2016, 2018, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 1992-2016, 2018, 2020, 2021, 2026
+#		Free Software Foundation, Inc.
 #
 # This file is part of DejaGnu.
 #
@@ -54,10 +55,10 @@ proc runtest_setup_nested_testsuite {} {
 
     set fd [open nested-init.exp w]
     puts $fd "set host_triplet $host_triplet"
-    puts $fd "set srcdir [testsuite file -source -test nested]"
-    puts $fd "set objdir [testsuite file -object -test nested]"
-    puts $fd "set tmpdir $tmpdir"
-    puts $fd "set outdir $tmpdir"
+    puts $fd "set srcdir \"[testsuite file -source -test nested]\""
+    puts $fd "set objdir \"[testsuite file -object -test nested]\""
+    puts $fd "set tmpdir \"$tmpdir\""
+    puts $fd "set outdir \"$tmpdir\""
     close $fd
 
     if {![file isdirectory $tmpdir]} {
