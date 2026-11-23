@@ -40,7 +40,7 @@ foreach name $test_names result $test_results {
 
 set stty_init { -onlcr -onlret }
 
-spawn /bin/sh -c \
+spawn /sw/bash/bin/bash -c \
     "cd [testsuite file -object -test onetest]\
      && exec $LAUNCHER report-card"
 
@@ -172,7 +172,7 @@ if { $separator_count == 2 } {
 # Ensure that totals map correctly by reading each file one at a time
 foreach name $test_names {
     set separator_count 0
-    spawn /bin/sh -c \
+    spawn /sw/bash/bin/bash -c \
 	"cd [testsuite file -object -test onetest]\
 	 && exec $LAUNCHER report-card one-${name}.sum"
     # skip header

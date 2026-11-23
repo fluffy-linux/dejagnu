@@ -78,7 +78,7 @@ proc close_wait_program { program_id pid {wres_varname ""} } {
 	foreach spid $pid {
 	    # Prepend "-" to generate the "process group ID" needed by
 	    # kill.
-	    exec sh -c "exec > /dev/null 2>&1 && (kill -2 -$spid || kill -2 $spid)"
+	    exec bash -c "exec > /dev/null 2>&1 && (kill -2 -$spid || kill -2 $spid)"
 	}
 
 	# If the program doesn't exit gracefully when stdin closes,
@@ -98,7 +98,7 @@ proc close_wait_program { program_id pid {wres_varname ""} } {
 	    append sh_cmd "(kill -9 -$spid || kill -9 $spid);"
 	}
 	append sh_cmd ") && sleep $secs"
-	set exec_pid [exec sh -c $sh_cmd &]
+	set exec_pid [exec bash -c $sh_cmd &]
     }
     verbose "pid is $pid"
 
@@ -120,7 +120,7 @@ proc close_wait_program { program_id pid {wres_varname ""} } {
 	#
 	# Use `catch' in case the force-kills have completed, so as not
 	# to cause TCL to choke if `kill' returns a failure.
-	catch {exec sh -c "kill -9 $exec_pid" >& /dev/null}
+	catch {exec bash -c "kill -9 $exec_pid" >& /dev/null}
     }
 
     return $res

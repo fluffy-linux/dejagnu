@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/sw/bash/bin/bash
 #
 # Copyright (C) 1992-2016, 2021 Free Software Foundation, Inc.
 #
@@ -89,7 +89,7 @@ fi
 # This wrapper script will set up run-time library search PATHs.
 
 if [ -x "$expectbin-bld.sh" ]; then
-  expectbin="${CONFIG_SHELL-/bin/sh} $expectbin-bld.sh"
+  expectbin="${CONFIG_SHELL-/sw/bash/bin/bash} $expectbin-bld.sh"
 fi
 
 # Extract a few options from the option list.

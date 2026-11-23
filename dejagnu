@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/sw/bash/bin/bash
 #
 # Copyright (C) 2018, 2021 Free Software Foundation, Inc.
 #
@@ -291,8 +291,8 @@ if test -n "$BASH" ; then
     bashbin="$BASH"
 elif test -x "${bindir}/bash" ; then
     bashbin="${bindir}/bash"
-elif test -x /bin/bash ; then
-    bashbin=/bin/bash
+elif test -x /sw/bash/bin/bash ; then
+    bashbin=/sw/bash/bin/bash
 else
     bashbin=bash
 fi
@@ -481,7 +481,7 @@ case $selected_ext in
     exp)    exec "$expectbin" -- "${commdir}/${command}.exp" ${1+"$@"} ;;
     gawk)   exec "$gawkbin" -f "${commdir}/${command}.gawk" -- ${1+"$@"} ;;
     tcl)    exec "$tclbin" "${commdir}/${command}.tcl" ${1+"$@"} ;;
-    sh)     exec /bin/sh "${commdir}/${command}.sh" ${1+"$@"} ;;
+    sh)     exec /sw/bash/bin/bash "${commdir}/${command}.sh" ${1+"$@"} ;;
     echo)
 	echo command: "${command}"
 	echo args: ${1+"$@"}

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/sw/bash/bin/bash
 # help.sh -- "dejagnu help" command
 #
 # Copyright (C) 2018, 2021 Free Software Foundation, Inc.

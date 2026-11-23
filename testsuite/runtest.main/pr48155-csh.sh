@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/sw/bash/bin/bash
 
 cat <<EOF 1>&2
 timestamp=2021-01-25: Command not found.
